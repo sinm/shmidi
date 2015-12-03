@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+#$:.unshift File.join( File.dirname( __FILE__ ), '../lib')
+
+require 'perftools'
+PerfTools::CpuProfiler.start 'test.profile'
+at_exit { PerfTools::CpuProfiler.stop }
+
+require "unimidi"
+
+#
+# This is an example that explains how to select an output.
+# It's not really meant to be run.
+#
+
+# Prompt the user for selection in the console
+
+require 'pp'
+input = UniMIDI::Input.gets
+
+while true
+  m = input.gets
+  puts(m)
+end
+__END__
+input.open do |device|
+  while true
+    input.gets do |message|
+      pp message
+    end
+  end
+end
+
