@@ -3,7 +3,10 @@
 	[
 		{
 			"path": "."
-		}
+		},
+    {
+      "path": "~/.rbenv/versions/2.1.2/lib/ruby/gems/2.1.0/gems"
+    }
 	],
   "build_systems":
   [
