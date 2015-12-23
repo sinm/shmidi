@@ -1,5 +1,5 @@
 # coding: utf-8
 
-class ArgParser
+module Shmidi
   VERSION = '2.1.1'
 end

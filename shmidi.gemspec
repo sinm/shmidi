@@ -15,8 +15,10 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.bindir        = 'bin'
   s.executables   = `git ls-files -- bin/`.split("\n").map{|f| File.basename(f)}
-  s.add_development_dependency  'bundler',    '~> 1.7'
-  s.add_development_dependency  'rake',       '~> 10.1'
-  s.add_development_dependency  'minitest',   '~> 4.7'
-  s.add_dependency              'unimidi', '~> 0.4.6'
+  s.add_development_dependency 'bundler',    '~> 1.7'
+  s.add_development_dependency 'rake',       '~> 10.1'
+  s.add_development_dependency 'minitest',   '~> 4.7'
+  s.add_dependency 'ffi-coremidi',  '0.3.8'
+  s.add_dependency 'unimidi',       '0.4.6'
+  s.add_dependency 'argparser',     '~> 2.1'
 end

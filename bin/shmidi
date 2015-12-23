@@ -1,200 +1,31 @@
 #!/usr/bin/env ruby
+
 if ENV['PROFILE'] && ENV['PROFILE'] != 0
-  require 'perftools'
-  PerfTools::CpuProfiler.start 'test.profile'
-  at_exit { PerfTools::CpuProfiler.stop }
+  begin
+    require 'perftools'
+    PerfTools::CpuProfiler.start 'test.profile'
+    at_exit { PerfTools::CpuProfiler.stop }
+  rescue LoadError
+    $stderr.puts "WARN: No profiler found."
+  end
 end
 
 trap('INT') do
   exit!(0)
 end
 
-require "unimidi"
+require 'shmidi'
 
-#if ARGV.shift - задавать номера устройств, выдавать список устройств с номерами
-
-print "\nSelect IN from APP"
-@app_in = UniMIDI::Input.gets
-
-print "\nSelect OUT to APP"
-@app_out = UniMIDI::Output.gets
-
-print "\nSelect IN from DEVICE"
-@dev_in = UniMIDI::Input.gets
-
-print "\nSelect OUT to DEVICE"
-@dev_out = UniMIDI::Output.gets
-
-@queue = Queue.new
-
-class Event
-  # TODO: MID_NOTE
-
-  attr_reader :source
-  attr_reader :data, :timestamp
-  attr_reader :channel, :message_int, :note_int, :value
-  attr_reader :message, :note, :octave
-
-  MESSAGES ||= begin
-    h = { 8  => :off,
-          9   => :on,
-          11  => :cc,
-          14  => :pitch}
-    h.keys.each {|k| h[h[k]] = k}
-    h
-  end
-
-  def initialize(h)
-    @source     = h[:source]
-    @timestamp  = (h[:timestamp] || 0).floor
-    @data       = h[:data].clone if h[:data]
-    if @data
-      @channel    = (@data[0] & 0x0f) + 1
-      @message_int= @data[0] >> 4
-      @message    = @message_int
-      @message    = MESSAGES[@message_int] || @message_int
-      @note_int   = @data[1]
-      @note       = @note_int
-      if [:on, :off].include?(@message)
-        @octave   = (@note_int / 12) - 1
-        @note     = 'C C#D D#E F F#G G#A A#B '[((@note_int % 12) * 2), 2].strip
-      end
-      @value      = @data[2]
-    else # no numeric data array
-      @value = h[:value] || 0 # TODO: || default value for message
-      @channel = h[:channel] || 1
-      if @note_int = h[:note_int]
-        #TODO: only if :on,:off else note_int
-        #TODO: dry
-        @octave   = (@note_int / 12) - 1
-        @note     = 'C C#D D#E F F#G G#A A#B '[((@note_int % 12) * 2), 2].strip
-      else
-        if h[:note][-1] =~ /\d/
-          @octave = h[:note][-1].to_i
-          @note = h[:note][0..-2]
-        else
-          @octave = h[:octave]
-          @note = h[:note]
-        end
-        @note_int = (@octave * 12 + 'C C#D D#E F F#G G#A A#B '.index(@note))
-      end
-      @data = [0,0,0]
-      @data[1] = @note_int
-      @data[2] = @value
-      @message = h[:message]
-      @message_int = h[:message_int] || MESSAGES[@message] || @message
-      @message = MESSAGES[@message_int]
-      @data[0] = (@message_int << 4) + (@channel - 1)
-    end
-  end
-
-  def transform(&block)
-    instance_exec(&block)
-  end
-
-  def to_s
-    "CH:#{@channel}\t#{@message}\t#{@note}#{@octave}\t=#{@value}"
-  end
-
-  def to_hash
-    hash = {}
-    instance_variables.each do |var|
-      hash[var[1..-1].to_sym] = instance_variable_get(var)
-    end
-    hash
-  end
+if ARGV.include?('--list')
+  Shmidi::Processor.print_device_list
+  exit(0)
 end
 
-{:APP => @app_in, :DEV => @dev_in}.each do |name, socket|
-  Thread.new do
-    begin
-      loop do
-        socket.gets.each do |e|
-          e[:source] = name
-          @queue.push(Event.new(e))
-        end
-      end
-    rescue
-      $stderr.puts($!)
-      $stderr.puts($!.backtrace)
-    end
-  end
-end
-
-# TODO: Завести свой Device, где
-# - будет имя,
-# - В конструкторе @dev_out, @dev_in (@app_out, @app_in)
-# - будет состояние
-
-#@dev_out.notes_off
-#@dev_out.open
-
-def notes_off(channel=1)
-  0.upto(127) do |note_int|
-    event = Event.new(:channel => channel,
-                      :message => :off,
-                      :note_int=> note_int,
-                      :value=>0)
-    @dev_out.puts(event.data)
-    puts("> #{:DEV}\t#{event}")
-  end
-end
-
-require 'timeout'
-def random_on_off(channel=1, timeout=1)
-  r = Random.new
-  begin
-    Timeout.timeout(timeout) do
-      loop do
-        event = Event.new(:channel => channel,
-                          :message => (r.rand(2) > 0 ? :on : :off),
-                          :note_int=> r.rand(128),
-                          :value=>r.rand(128))
-        @dev_out.puts(event.data)
-      end
-    end
-  rescue
-  end
-end
-
-def blink(channel, note, timeout)
-  Timeout.timeout(timeout) do
-    loop do
-      [[:on, 127], [:off,0]].each do |e|
-        event = Event.new(:channel => channel,
-                          :message => e[0],
-                          :note_int => note,
-                          :value=>e[1])
-        @dev_out.puts(event.data)
-        puts("> #{:DEV}\t#{event}")
-        sleep(0.04)
-      end
-    end
-  end
-rescue
-  puts($!)
-ensure
-  event = Event.new(:channel => channel,
-                      :message => :off,
-                      :note_int=> note,
-                      :value=>0)
-  @dev_out.puts(event.data)
-end
+@processor = Shmidi::Processor.new(ARGV[0..3].map{|v|v.to_i})
+@processor.random_on_off(15, 1)
+@processor.blink(15, 12, 10)
+@processor.notes_off(15)
 
 
-#random_on_off(15, 1)
-notes_off(15)
-blink(15, 12, 10)
-
-
-
-
-@listener = Thread.new do
-  while true
-    event = @queue.pop
-    puts("< #{event.source}\t#{event}")
-  end
-end
-
-@listener.join
+@processor.join
 
