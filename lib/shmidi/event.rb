@@ -1,8 +1,6 @@
 # coding: utf-8
 module Shmidi
   class Event
-    # TODO: MID_NOTE
-
     attr_reader :source
     attr_reader :data, :timestamp
     attr_reader :channel, :message_int, :note_int, :value
@@ -28,20 +26,17 @@ module Shmidi
         @message    = MESSAGES[@message_int] || @message_int
         @note_int   = @data[1]
         @note       = @note_int
-        if [:on, :off].include?(@message)
-          @octave   = (@note_int / 12) - 1
-          @note     = 'C C#D D#E F F#G G#A A#B '[((@note_int % 12) * 2), 2].strip
-        end
+        parse_note_int if [:on, :off].include?(@message)
         @value      = @data[2]
       else # no numeric data array
+        @message_int = h[:message_int] || MESSAGES[h[:message]] || h[:message]
+        @message = MESSAGES[@message_int]
         @value = h[:value] || 0 # TODO: || default value for message
         @channel = h[:channel] || 1
-        if @note_int = h[:note_int]
-          #TODO: only if :on,:off else note_int
-          #TODO: dry
-          @octave   = (@note_int / 12) - 1
-          @note     = 'C C#D D#E F F#G G#A A#B '[((@note_int % 12) * 2), 2].strip
-        else
+        if h[:note].kind_of?(Numeric) && [:on, :off].include?(@message)
+          @note_int = h[:note]
+          parse_note_int
+        elsif h[:note].kind_of?(String)
           if h[:note][-1] =~ /\d/
             @octave = h[:note][-1].to_i
             @note = h[:note][0..-2]
@@ -54,9 +49,6 @@ module Shmidi
         @data = [0,0,0]
         @data[1] = @note_int
         @data[2] = @value
-        @message = h[:message]
-        @message_int = h[:message_int] || MESSAGES[@message] || @message
-        @message = MESSAGES[@message_int]
         @data[0] = (@message_int << 4) + (@channel - 1)
       end
     end
@@ -64,6 +56,23 @@ module Shmidi
     def transform(&block)
       instance_exec(&block)
     end
+
+    def self.new_on(channel, note, value = 127)
+      Event.new(
+        :channel  => channel,
+        :message  => :on,
+        :note     => note,
+        :value    => value)
+    end
+
+    def self.new_off(channel, note, value = 0)
+      Event.new(
+        :channel  => channel,
+        :message  => :off,
+        :note     => note,
+        :value    => value)
+    end
+
 
     def to_s
       "CH:#{@channel}\t#{@message}\t#{@note}#{@octave}\t=#{@value}"
@@ -75,6 +84,13 @@ module Shmidi
         hash[var[1..-1].to_sym] = instance_variable_get(var)
       end
       hash
+    end
+
+    private
+
+    def parse_note_int
+      @octave   = (@note_int / 12) - 1
+      @note     = 'C C#D D#E F F#G G#A A#B '[((@note_int % 12) * 2), 2].strip
     end
   end
 end

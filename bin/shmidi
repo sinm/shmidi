@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
+require 'shmidi'
 
-if ENV['PROFILE'] && ENV['PROFILE'] != 0
+if Shmidi::PROFILE
   begin
     require 'perftools'
     PerfTools::CpuProfiler.start 'test.profile'
@@ -14,18 +15,30 @@ trap('INT') do
   exit!(0)
 end
 
-require 'shmidi'
-
 if ARGV.include?('--list')
-  Shmidi::Processor.print_device_list
+  Shmidi::Socket.print_device_list
   exit(0)
 end
 
+if i = ARGV.index('--dev-channel')
+  CH = ARGV[i+1].to_i
+else
+  $stderr.puts('--dev-channel expected.')
+  exit(1)
+end
+
 @processor = Shmidi::Processor.new(ARGV[0..3].map{|v|v.to_i})
-@processor.random_on_off(15, 1)
-@processor.blink(15, 12, 10)
-@processor.notes_off(15)
 
+ARGV[4..-1].each do |arg|
+  case arg
+  when 'notes_rand'
+    @processor.notes_rand(CH, 2)
+  when 'notes_off'
+    @processor.notes_off(CH)
+  when 'notes_blink'
+    @processor.notes_blink(CH, 5, 0.05, 0.4)
+  end
+end
 
-@processor.join
+# TODO: channels and notes to indexers under socket!
 
