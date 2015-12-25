@@ -44,7 +44,7 @@ ARGV[4..-1].each do |arg|
       next unless [:on, :off].include?(event.message) #TODO: dry! same in event
       id = event.note
       next if @buttons[id]
-      @buttons[id] = Shmidi::LedButton.new(id, socket, event.channel, event.note)
+      @buttons[id] = Shmidi::RetainButton.new(id, socket, event.channel, event.note)
     end
   when 'join'
     @processor.join

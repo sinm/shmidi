@@ -41,4 +41,5 @@ require 'shmidi/control'
 require 'shmidi/button'
 require 'shmidi/led'
 require 'shmidi/led_button'
+require 'shmidi/retain_button'
 
