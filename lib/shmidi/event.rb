@@ -4,7 +4,7 @@ module Shmidi
     attr_reader :source
     attr_reader :data, :timestamp
     attr_reader :channel, :message_int, :note_int, :value
-    attr_reader :message, :note, :octave
+    attr_reader :message, :note
 
     MESSAGES ||= begin
       h = { 8  => :off,
@@ -13,6 +13,11 @@ module Shmidi
             14  => :pitch}
       h.keys.each {|k| h[h[k]] = k}
       h
+    end
+
+    def octave
+      return nil unless @note.kind_of?(String)
+      (@note_int / 12) - 1
     end
 
     def initialize(h)
@@ -37,14 +42,10 @@ module Shmidi
           @note_int = h[:note]
           parse_note_int
         elsif h[:note].kind_of?(String)
-          if h[:note][-1] =~ /\d/
-            @octave = h[:note][-1].to_i
-            @note = h[:note][0..-2]
-          else
-            @octave = h[:octave]
-            @note = h[:note]
-          end
-          @note_int = (@octave * 12 + 'C C#D D#E F F#G G#A A#B '.index(@note))
+          @note = h[:note]
+          #@note += h[:note][1] if h[:note][1] == '#'
+          h[:note] =~ /^(.#?)(-?\d+)$/
+          @note_int = ($2.to_i + 1) * 12 + 'C C#D D#E F F#G G#A A#B '.index($1) / 2
         end
         @data = [0,0,0]
         @data[1] = @note_int
@@ -75,7 +76,7 @@ module Shmidi
 
 
     def to_s
-      "CH:#{@channel}\t#{@message}\t#{@note}#{@octave}\t=#{@value}"
+      "CH:#{@channel}\t#{@message}\t#{@note}\t=#{@value}"
     end
 
     def to_hash
@@ -89,8 +90,8 @@ module Shmidi
     private
 
     def parse_note_int
-      @octave   = (@note_int / 12) - 1
       @note     = 'C C#D D#E F F#G G#A A#B '[((@note_int % 12) * 2), 2].strip
+      @note += "#{octave}"
     end
   end
 end
