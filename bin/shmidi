@@ -37,6 +37,17 @@ ARGV[4..-1].each do |arg|
     @processor.notes_off(CH)
   when 'notes_blink'
     @processor.notes_blink(CH, 5, 0.05, 0.4)
+  when 'learn'
+    @buttons = {}
+    socket = @processor.dev
+    socket.on_event(CH) do |event|
+      next unless [:on, :off].include?(event.message) #TODO: dry! same in event
+      id = event.note
+      next if @buttons[id]
+      @buttons[id] = Shmidi::Button.new(id, socket, event.channel, event.note)
+    end
+  when 'join'
+    @processor.join
   end
 end
 

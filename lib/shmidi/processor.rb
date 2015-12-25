@@ -7,6 +7,7 @@ module Shmidi
       @queue = Queue.new
       @app = Socket.new(:APP, indeces[0], indeces[1], @queue)
       @dev = Socket.new(:DEV, indeces[2], indeces[3], @queue)
+      start
     end
 
     def start
@@ -14,7 +15,7 @@ module Shmidi
         begin
           loop do
             event = @queue.pop
-            puts("< #{event.source}\t#{event}")
+            Shmidi.TRACE("< #{event.source}\t#{event}")
           end
         rescue
           $stderr.puts($!)
@@ -26,13 +27,5 @@ module Shmidi
     def join
       @processing.join if @processing
     end
-
-
-
-
-
-  private
-
-
   end
 end

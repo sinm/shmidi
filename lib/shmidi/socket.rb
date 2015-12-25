@@ -8,12 +8,22 @@ module Shmidi
       @out  = UniMIDI::Output.all.find{ |d| d.id == out_id }
       @name = name
       @queue = queue
+      @on_event = []
       @listener = Thread.new do
         begin
           loop do
-            @in.gets.each do |e|
-              e[:source] = @name
-              @queue.push(Event.new(e))
+            @in.gets.each do |event|
+              event[:source] = @name
+              event = Event.new(event)
+              @queue.push(event)
+              @on_event.each do |rule|
+                #puts rule.inspect #!!!!!!!!!!!!!!!!!!
+                next if (channel  = rule[:channel]) && channel  != event.channel
+                next if (message  = rule[:message]) && message  != event.message
+                next if (note     = rule[:note])    && note     != event.note
+
+                rule[:block].call(event)
+              end
             end
           end
         rescue
@@ -23,11 +33,19 @@ module Shmidi
       end
     end
 
+    def on_event(channel = nil, message = nil, note = nil, &block)
+      @on_event << {
+        :block => block,
+        :channel => channel,
+        :message => message,
+        :note => note
+      }
+    end
+
     def push(events)
       events = Array(events)
-      #$stderr.puts events.inspect
       events = events.reduce([]) do |array, event|
-        $stderr.puts("> #{@name}\t#{event}") if TRACE
+        Shmidi.TRACE("> #{@name}\t#{event}")
         array << event.data
         array
       end
