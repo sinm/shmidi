@@ -6,10 +6,10 @@ thumbs.db
 *.log
 *.pid
 *.dump
-*.prof
-*.prof.gif
-*.prof.dot
-*.prof.symbols
+*.profile
+*.profile.gif
+*.profile.dot
+*.profile.symbols
 .svn/
 .hg/
 *.sublime-workspace

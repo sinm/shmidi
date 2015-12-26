@@ -18,6 +18,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'bundler',    '~> 1.7'
   s.add_development_dependency 'rake',       '~> 10.1'
   s.add_development_dependency 'minitest',   '~> 4.7'
+  # NOTE: it's useful to install
+  # specified version of perftools.rb w/o bundler first
+  s.add_development_dependency 'perftools.rb', '~> 2.0.4'
   s.add_dependency 'ffi-coremidi',  '0.3.8'
   s.add_dependency 'unimidi',       '0.4.6'
   s.add_dependency 'argparser',     '~> 2.1'

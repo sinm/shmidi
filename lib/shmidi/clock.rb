@@ -29,7 +29,6 @@ module Shmidi
       event.destination = Queue.new
       @buffer << event
       event.destination.pop
-      $stderr.puts('synced!')
     end
 
     protected

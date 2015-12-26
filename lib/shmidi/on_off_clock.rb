@@ -1,7 +1,7 @@
 # coding: utf-8
 module Shmidi
   class OnOffClock < Clock
-    def initialize(socket, delay = 0.05, delay_off = 0.25)
+    def initialize(socket, delay = 0.2, delay_off = 0.2)
       @next_on = false
       super(socket, delay)
       @delay_off = delay_off
