@@ -2,7 +2,7 @@
 module Shmidi
   class LedButton < Control
     def initialize(id, socket, channel, note, led_note = nil)
-      super
+      super(id, socket, channel, note)
       @button = Button.new(id, socket, channel, note)
       @led = Led.new(id, socket, channel, led_note || note)
       @button.on_press do |button|

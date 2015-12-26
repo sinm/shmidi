@@ -1,8 +1,10 @@
 # coding: utf-8
 module Shmidi
   class RetainButton < LedButton
+    @@clocks = {}
     def initialize(id, socket, channel, note, led_note =nil, delay = 2)
       super(id, socket, channel, note, led_note)
+      @@clocks[@socket] ||= Clock.new(@socket)
       @retained = false
       @retain_queue = Queue.new
       @release_queue = Queue.new
@@ -24,13 +26,10 @@ module Shmidi
             end
             next if cancel
             while @button.counter == counter
-              @led.turn_on
-              break unless @button.counter == counter
               @retained = true
-              sleep(0.133);
+              @led.turn_on(@@clocks[@socket])
               break unless @button.counter == counter
-              @led.turn_off
-              sleep(0.133);
+              @led.turn_off(@@clocks[@socket])
             end
             if @button.counter == counter + 1 && @retained # first release
               @led.turn_on # stay the led light

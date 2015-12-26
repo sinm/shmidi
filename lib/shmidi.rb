@@ -37,6 +37,7 @@ require 'shmidi/event'
 require 'shmidi/processor'
 require 'shmidi/notes'
 
+require 'shmidi/clock'
 require 'shmidi/control'
 require 'shmidi/button'
 require 'shmidi/led'

@@ -14,8 +14,12 @@ module Shmidi
       !!@turned_on
     end
 
-    def turn_on
-      @socket.push(@turn_on_event)
+    def turn_on(clock = nil)
+      if clock
+        clock.sync(@turn_on_event)
+      else
+        @socket.push(@turn_on_event)
+      end
       Shmidi.TRACE("LED\t#{@id}\tON")
     end
 
@@ -23,8 +27,12 @@ module Shmidi
       !@turned_on
     end
 
-    def turn_off
-      @socket.push(@turn_off_event)
+    def turn_off(clock = nil)
+      if clock
+        clock.sync(@turn_off_event)
+      else
+        @socket.push(@turn_off_event)
+      end
       Shmidi.TRACE("LED\t#{@id}\tOFF")
     end
 
