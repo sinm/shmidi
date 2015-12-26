@@ -25,17 +25,14 @@ module Shmidi
             rescue Timeout::Error
             end
             next if cancel
-            while @button.counter == counter
+            while @button.counter <= counter + 1
               @retained = true
               @led.turn_on(@@clocks[@socket])
-              break unless @button.counter == counter
+              break unless @button.counter <= counter + 1
               @led.turn_off(@@clocks[@socket])
             end
-            if @button.counter == counter + 1 && @retained # first release
-              @led.turn_on # stay the led light
-            else
-              @retained = false
-            end
+            @led.turn_off if @retained
+            @retained = false
           rescue
             #TODO: dry exception output
             $stderr.puts($!)
