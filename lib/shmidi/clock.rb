@@ -1,3 +1,4 @@
+# coding: utf-8
 module Shmidi
   class Event
     attr_accessor :destination
@@ -10,13 +11,12 @@ module Shmidi
       @thread = Thread.new do
         loop do
           begin
-            buf = @buffer
-            @buffer = []
+            buf = filter
             @socket.push(buf)
             buf.each do |event|
               event.destination.push(true)
             end
-            sleep(@delay)
+            wait
           rescue
             $stderr.puts($!)
             $stderr.puts($!.backtrace)
@@ -30,6 +30,18 @@ module Shmidi
       @buffer << event
       event.destination.pop
       $stderr.puts('synced!')
+    end
+
+    protected
+
+    def filter
+      b = @buffer
+      @buffer = []
+      b
+    end
+
+    def wait
+      sleep(@delay)
     end
   end
 end

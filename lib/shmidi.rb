@@ -38,6 +38,7 @@ require 'shmidi/processor'
 require 'shmidi/notes'
 
 require 'shmidi/clock'
+require 'shmidi/on_off_clock'
 require 'shmidi/control'
 require 'shmidi/button'
 require 'shmidi/led'
