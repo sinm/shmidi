@@ -39,13 +39,17 @@ ARGV[4..-1].each do |arg|
   when 'notes_blink'
     @processor.notes_blink(CH, 5, 0.05, 0.4)
   when 'learn'
-    @buttons = {}
+    @controls = {}
     socket = @processor.dev
     socket.on_event(CH) do |event|
-      next unless [:on, :off].include?(event.message) #TODO: dry! same in event
       id = event.note
-      next if @buttons[id]
-      @buttons[id] = Shmidi::RetainButton.new(id, socket, event.channel, event.note)
+      next if @controls[id]
+      control = if [:on, :off].include?(event.message) #TODO: dry! same in event
+        Shmidi::RetainButton.new(id, socket, event.channel, event.note)
+      elsif event.message == :cc
+        Shmidi::Knob.new(id, socket, event.channel, event.note)
+      end
+      @controls[id] = control
     end
   when 'join'
     @processor.join
