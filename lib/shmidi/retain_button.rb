@@ -1,30 +1,26 @@
 # coding: utf-8
 module Shmidi
   class RetainButton < LedButton
-    def initialize(id, socket, channel, note)
-      super
+    def initialize(id, socket, channel, note, led_note =nil, delay = 2)
+      super(id, socket, channel, note, led_note)
       @retained = false
       @retain_queue = Queue.new
+      @release_queue = Queue.new
       @retain_thread = Thread.new do
         loop do
           begin #TODO: everywhere else: insert exception handling inside loop
             next unless (counter = @retain_queue.pop) == @button.counter
-            # sleep(2)
-            # fun:
-            # loop do
-            #   def RandomLoadedClass.random_method
-            #     nil
-            #   end
-            # end
-            c = 0
-            cancel = false
-            loop do
-              sleep(0.001)
-              unless @button.counter == counter
-                cancel = true
-                break
+            begin
+              cancel = false
+              Timeout.timeout(delay) do
+                loop do
+                  c = @release_queue.pop
+                  next if c < counter
+                  cancel = true
+                  break
+                end
               end
-              break if (c += 1) > 1567
+            rescue Timeout::Error
             end
             next if cancel
             while @button.counter == counter
@@ -52,7 +48,7 @@ module Shmidi
         @retain_queue.push(button.counter)
       end
       @button.on_release do |button|
-        #@led.turn_off
+        @release_queue.push(button.counter)
       end
     end
   end

@@ -28,7 +28,7 @@ module Shmidi
     end
 
     def pressed?
-      @pressed
+      !!@pressed
     end
     def on_press(&block)
       @on_press << block

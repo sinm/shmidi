@@ -9,6 +9,7 @@ module Shmidi
       @name = name
       @queue = queue
       @on_event = []
+      @sync_threads = Hash.new { |hash, key| hash[key] = Clock.new(key, self) }
       @listener = Thread.new do
         begin
           loop do
@@ -43,8 +44,7 @@ module Shmidi
     end
 
     def push(events)
-      events = Array(events)
-      events = events.reduce([]) do |array, event|
+      events = Array(events).reduce([]) do |array, event|
         Shmidi.TRACE("> #{@name}\t#{event}")
         array << event.data
         array
