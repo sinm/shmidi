@@ -2,6 +2,9 @@
 module Shmidi
   class RetainButton < LedButton
     @@clocks = {}
+    def retain?
+      !!@retained
+    end
     def initialize(id, socket, channel, note, led_note =nil, delay = 2)
       super(id, socket, channel, note, led_note)
       @@clocks[@socket] ||= OnOffClock.new(@socket)
@@ -26,6 +29,7 @@ module Shmidi
             end
             next if cancel
             while @button.counter <= counter + 1
+              Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t1") unless @retained
               @retained = true
               @led.turn_on(@@clocks[@socket])
               break unless @button.counter <= counter + 1
@@ -33,6 +37,7 @@ module Shmidi
             end
             @led.turn_off if @retained
             @retained = false
+            Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t0")
           rescue
             #TODO: dry exception output
             $stderr.puts($!)

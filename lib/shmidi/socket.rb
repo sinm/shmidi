@@ -45,7 +45,7 @@ module Shmidi
 
     def push(events)
       events = Array(events).reduce([]) do |array, event|
-        Shmidi.TRACE("> #{@name}\t#{event}")
+        Shmidi.TRACE_EXTERNAL("> #{@name}\t#{event}")
         array << event.data
         array
       end

@@ -1,5 +1,6 @@
 # coding: utf-8
 module Shmidi
+  #TODO: FIXME sometimes button isnt pressed !!!!!
   class Button < Control
     attr_reader :counter
 
@@ -13,7 +14,7 @@ module Shmidi
       socket.on_event(channel, :on, note) do |event|
         @pressed = true
         @counter += 1 # intentionaly before handlers
-        Shmidi.TRACE("BTN\t#{@id}\tPRESSED")
+        Shmidi.TRACE("BTN\t#{@id}\tPRESS\t#{event.value}")
         @on_press.each { |b| b.call(self) }
       end
 
@@ -21,7 +22,7 @@ module Shmidi
       socket.on_event(channel, :off, note) do |event|
         @pressed = false
         #TODO: why it is not on the screen!!!
-        Shmidi.TRACE("BTN\t#{@id}\tRELEASED")
+        Shmidi.TRACE("BTN\t#{@id}\tRELEASE\t#{event.value}")
         @on_release.each { |b| b.call(self) }
         @counter += 1 # intentionaly after handlers
       end

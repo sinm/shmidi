@@ -8,6 +8,7 @@ module Shmidi
     def initialize(socket, delay = 0.25)
       @socket = socket
       @delay = delay
+      @buffer = []
       @thread = Thread.new do
         loop do
           begin

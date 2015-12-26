@@ -44,12 +44,14 @@ ARGV[4..-1].each do |arg|
     socket.on_event(CH) do |event|
       id = event.note
       next if @controls[id]
-      control = if [:on, :off].include?(event.message) #TODO: dry! same in event
+      #TODO: dry! same [:on, :off] in event and maybe somewhere else
+      @controls[id] = if [:on, :off].include?(event.message)
         Shmidi::RetainButton.new(id, socket, event.channel, event.note)
       elsif event.message == :cc
         Shmidi::Knob.new(id, socket, event.channel, event.note)
+      else
+        nil
       end
-      @controls[id] = control
     end
   when 'join'
     @processor.join

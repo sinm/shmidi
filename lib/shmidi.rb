@@ -7,18 +7,30 @@ require 'unimidi'
 require 'shmidi/ffi-coremidi-patch'
 
 module Shmidi
-  TRACE   = !!ENV['TRACE']
-  PROFILE = !!ENV['PROFILE']
+  PROFILE         = !!ENV['PROFILE']
+  TRACE           = !!ENV['TRACE']
+  TRACE_EXTERNAL  = !!ENV['TRACE_EXTERNAL']
+  TRACE_INTERNAL  = !!ENV['TRACE_INTERNAL'] # for leds
 
   def self.timestamp
-    #TODO: timestamp
+    t = Time.now
+    (t.to_i * 1000) + (t.usec / 1000)
   end
+
+  # @@timestamp = timestamp
+  # @@timestamp_thread = Thread.new do
+  #   loop do
+  #     @@timestamp = timestamp
+  #     sleep(0.0005)
+  #   end
+  # end
 
   @@trace_queue = Queue.new
   @@trace_thread = Thread.new do
     begin
       loop do
-        $stderr.puts(@@trace_queue.pop)
+        str = @@trace_queue.pop
+        $stderr.puts("#{timestamp}\t#{str}")
       end
     rescue
       $stderr.puts($!)
@@ -30,7 +42,19 @@ module Shmidi
     return nil unless TRACE
     @@trace_queue.push(str)
   end
+
+  def self.TRACE_EXTERNAL(str)
+    return nil unless TRACE_EXTERNAL
+    @@trace_queue.push(str)
+  end
+
+  def self.TRACE_INTERNAL(str)
+    return nil unless TRACE_INTERNAL
+    @@trace_queue.push(str)
+  end
 end
+
+# TODO: controls are passive and active!
 
 require 'shmidi/socket'
 require 'shmidi/event'

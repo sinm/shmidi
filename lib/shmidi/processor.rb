@@ -15,7 +15,7 @@ module Shmidi
         begin
           loop do
             event = @queue.pop
-            Shmidi.TRACE("< #{event.source}\t#{event}")
+            Shmidi.TRACE_EXTERNAL("< #{event.source}\t#{event}")
           end
         rescue
           $stderr.puts($!)
