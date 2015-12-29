@@ -5,10 +5,9 @@ module Shmidi
     def retain?
       !!@retained
     end
-    def initialize(id, socket, channel, note, led_note=nil, delay=2, mode=nil)#mode=:blink_on_release)
+    def initialize(id, socket, channel, note, led_note = nil, delay = 2)
       super(id, socket, channel, note, led_note)
       @@clocks[@socket] ||= OnOffClock.new(@socket)
-      @mode = Array(mode)
       @retained = false
       @retain_queue = Queue.new
       @release_queue = Queue.new
@@ -29,32 +28,16 @@ module Shmidi
             rescue Timeout::Error
             end
             next if cancel
-            if @mode.include?(:blink_on_release)
-              while @button.counter <= counter + 1
-                Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t1") unless @retained
-                @retained = true
-                @led.turn_on(@@clocks[@socket])
-                break unless @button.counter <= counter + 1
-                @led.turn_off(@@clocks[@socket])
-              end
-              @led.turn_off if @retained
-              @retained = false
-              Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t0")
-            else # TODO: DRY
-              while @button.counter == counter
-                Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t1") unless @retained
-                @retained = true
-                @led.turn_on(@@clocks[@socket])
-                break unless @button.counter == counter
-                @led.turn_off(@@clocks[@socket])
-              end
-              if @button.counter == counter + 1 && @retained # first release
-                @led.turn_on # stay the led light
-              else
-                Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t0")
-                @retained = false
-              end
+            while @button.counter <= counter + 1
+              Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t1") unless @retained
+              @retained = true
+              @led.turn_on(@@clocks[@socket])
+              break unless @button.counter <= counter + 1
+              @led.turn_off(@@clocks[@socket])
             end
+            @led.turn_off if @retained
+            @retained = false
+            Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t0")
           rescue
             #TODO: dry exception output
             $stderr.puts($!)

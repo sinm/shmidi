@@ -54,7 +54,7 @@ module Shmidi
   end
 end
 
-# TODO: controls are passive and active!
+# TODO: ? controls are passive and active!
 
 require 'shmidi/socket'
 require 'shmidi/event'
@@ -62,11 +62,13 @@ require 'shmidi/processor'
 require 'shmidi/notes'
 
 require 'shmidi/clock'
-require 'shmidi/on_off_clock'
+  require 'shmidi/on_off_clock'
 require 'shmidi/control'
-require 'shmidi/button'
-require 'shmidi/led'
-require 'shmidi/led_button'
-require 'shmidi/retain_button'
-require 'shmidi/knob'
+  require 'shmidi/knob'
+  require 'shmidi/button'
+  require 'shmidi/led'
+  require 'shmidi/led_button'
+    require 'shmidi/switch'
+    require 'shmidi/retain_button'
+
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'shmidi'
+require 'io/console'
 
 if Shmidi::PROFILE
   begin
@@ -30,23 +31,40 @@ end
 
 @processor = Shmidi::Processor.new(ARGV[0..3].map{|v|v.to_i})
 
+$stdout.puts('ready!')
 ARGV[4..-1].each do |arg|
   case arg
   when 'notes_rand'
-    @processor.notes_rand(CH, 2)
+    @processor.notes_rand(CH, 20)
   when 'notes_off'
     @processor.notes_off(CH)
   when 'notes_blink'
     @processor.notes_blink(CH, 5, 0.05, 0.4)
   when 'learn'
+    # Switch(N) + Knob(bottom encoder) = track moving
+    #
+
     @controls = {}
     socket = @processor.dev
     socket.on_event(CH) do |event|
       id = event.note
       next if @controls[id]
+      #TODO: FIXME: first few pressed not catched
       #TODO: dry! same [:on, :off] in event and maybe somewhere else
       @controls[id] = if [:on, :off].include?(event.message)
-        Shmidi::RetainButton.new(id, socket, event.channel, event.note)
+        $stdout.print("[b]utton/[l]edButton/[s]witch/[r]etain:")
+        ch = $stdin.getch
+        $stdout.puts()
+        case(ch)
+        when 'l'
+          Shmidi::LedButton.new(id, socket, event.channel, event.note)
+        when 's'
+          Shmidi::Switch.new(id, socket, event.channel, event.note)
+        when 'r'
+          Shmidi::RetainButton.new(id, socket, event.channel, event.note)
+        else
+          Shmidi::Button.new(id, socket, event.channel, event.note)
+        end
       elsif event.message == :cc
         Shmidi::Knob.new(id, socket, event.channel, event.note)
       else

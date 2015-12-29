@@ -1,7 +1,5 @@
 # coding: utf-8
 module Shmidi
-  # NOTE: not faster than
-  # ~5 changes in one direction from min to max or otherwise
   class Knob < Control
     attr_reader :value
 
