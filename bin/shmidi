@@ -8,8 +8,7 @@ if Shmidi::PROFILE
     PerfTools::CpuProfiler.start 'test.profile'
     at_exit { PerfTools::CpuProfiler.stop }
   rescue LoadError
-    $stderr.puts $!
-    $stderr.puts "WARN: No profiler found."
+    Shmidi.ON_EXCEPTION
   end
 end
 
@@ -22,14 +21,27 @@ if ARGV.include?('--list')
   exit(0)
 end
 
+inouts = ARGV[0..3].map{|v|v.to_i}
+
+@processor = if (i = ARGV.index('--processor'))
+  case(ARGV[i+1])
+  when 'xonek1'
+    require 'shmidi/processor/xonek1'
+    Shmidi::XoneK1.new(inouts)
+  else
+    $stderr.puts('No processor found')
+    exit(1)
+  end
+else
+  Shmidi::Processor.new(inouts)
+end
+
 if i = ARGV.index('--dev-channel')
   CH = ARGV[i+1].to_i
 else
   $stderr.puts('--dev-channel expected.')
   exit(1)
 end
-
-@processor = Shmidi::Processor.new(ARGV[0..3].map{|v|v.to_i})
 
 $stdout.puts('ready!')
 ARGV[4..-1].each do |arg|
@@ -46,28 +58,55 @@ ARGV[4..-1].each do |arg|
 
     @controls = {}
     socket = @processor.dev
+    @waiting_button_for_encoder = nil
     socket.on_event(CH) do |event|
       id = event.note
       next if @controls[id]
       #TODO: FIXME: first few pressed not catched
       #TODO: dry! same [:on, :off] in event and maybe somewhere else
       @controls[id] = if [:on, :off].include?(event.message)
-        $stdout.print("[b]utton/[l]edButton/[s]witch/[r]etain:")
+        if @waiting_button_for_encoder
+          e = @waiting_button_for_encoder
+          @waiting_button_for_encoder = nil
+          Shmidi::EncoderButton.new(e.note,
+                                    socket,
+                                    e.channel,
+                                    e.note,
+                                    event.note)
+        else
+          $stdout.print("[B]utton/[l]edButton/[s]witch/[r]etain:")
+          ch = $stdin.getch
+          $stdout.puts()
+          case(ch)
+          when 'l'
+            Shmidi::LedButton.new(id, socket, event.channel, event.note)
+          when 's'
+            Shmidi::Switch.new(id, socket, event.channel, event.note)
+          when 'r'
+            Shmidi::RetainButton.new(id, socket, event.channel, event.note)
+          else
+            Shmidi::Button.new(id, socket, event.channel, event.note)
+          end
+        end
+      elsif event.message == :cc
+        $stdout.print("[K]nob/[e]ncoder/[f]ader/encoder[b]utton:")
         ch = $stdin.getch
         $stdout.puts()
         case(ch)
-        when 'l'
-          Shmidi::LedButton.new(id, socket, event.channel, event.note)
-        when 's'
-          Shmidi::Switch.new(id, socket, event.channel, event.note)
-        when 'r'
-          Shmidi::RetainButton.new(id, socket, event.channel, event.note)
+        when 'e'
+          Shmidi::Encoder.new(id, socket, event.channel, event.note)
+        when 'k'
+          Shmidi::Knob.new(id, socket, event.channel, event.note)
+        when 'f'
+          Shmidi::Fader.new(id, socket, event.channel, event.note)
+        when 'b'
+          $stdout.print("Press encoder's button once!")
+          @waiting_button_for_encoder = event
         else
-          Shmidi::Button.new(id, socket, event.channel, event.note)
+          Shmidi::Knob.new(id, socket, event.channel, event.note)
         end
-      elsif event.message == :cc
-        Shmidi::Knob.new(id, socket, event.channel, event.note)
       else
+        $tdrerr.puts("Unrecognized control: #{event}")
         nil
       end
     end

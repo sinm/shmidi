@@ -19,8 +19,7 @@ module Shmidi
             end
             wait
           rescue
-            $stderr.puts($!)
-            $stderr.puts($!.backtrace)
+            Shmidi.ON_EXCEPTION
           end
         end
       end

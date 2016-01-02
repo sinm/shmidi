@@ -1,6 +1,7 @@
 # coding: utf-8
 module Shmidi
   class RetainButton < LedButton
+    CTYPE = :RETBUT
     @@clocks = {}
     def retain?
       !!@retained
@@ -13,7 +14,7 @@ module Shmidi
       @release_queue = Queue.new
       @retain_thread = Thread.new do
         loop do
-          begin #TODO: everywhere else: insert exception handling inside loop
+          begin
             next unless (counter = @retain_queue.pop) == @button.counter
             begin
               cancel = false
@@ -29,7 +30,7 @@ module Shmidi
             end
             next if cancel
             while @button.counter <= counter + 1
-              Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t1") unless @retained
+              Shmidi.TRACE("#{CTYPE}\t#{@id}\tRETAIN\t1") unless @retained
               @retained = true
               @led.turn_on(@@clocks[@socket])
               break unless @button.counter <= counter + 1
@@ -37,11 +38,9 @@ module Shmidi
             end
             @led.turn_off if @retained
             @retained = false
-            Shmidi.TRACE("BTN\t#{@id}\tRETAIN\t0")
+            Shmidi.TRACE("#{CTYPE}\t#{@id}\tRETAIN\t0")
           rescue
-            #TODO: dry exception output
-            $stderr.puts($!)
-            $stderr.puts($!.backtrace)
+            Shmidi.ON_EXCEPTION
           end
         end
       end

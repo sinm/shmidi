@@ -12,14 +12,13 @@ module Shmidi
 
     def start
       @processing ||= Thread.new do
-        begin
-          loop do
+        loop do
+          begin
             event = @queue.pop
             Shmidi.TRACE_EXTERNAL("< #{event.source}\t#{event}")
+          rescue
+            Shmidi.ON_EXCEPTION
           end
-        rescue
-          $stderr.puts($!)
-          $stderr.puts($!.backtrace)
         end
       end
     end

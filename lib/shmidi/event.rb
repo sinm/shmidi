@@ -36,10 +36,11 @@ module Shmidi
       else # no numeric data array
         @message_int = h[:message_int] || MESSAGES[h[:message]] || h[:message]
         @message = MESSAGES[@message_int]
-        @value = h[:value] || 0 # TODO: || default value for message
+        @value = h[:value] || 0
         @channel = h[:channel] || 1
+        @note = h[:note]
+        @note_int = h[:note]
         if h[:note].kind_of?(Numeric) && [:on, :off].include?(@message)
-          @note_int = h[:note]
           parse_note_int
         elsif h[:note].kind_of?(String)
           @note = h[:note]
@@ -71,6 +72,14 @@ module Shmidi
         :channel  => channel,
         :message  => :off,
         :note     => note,
+        :value    => value)
+    end
+
+    def self.new_cc(channel, cc, value)
+      Event.new(
+        :channel  => channel,
+        :message  => :cc,
+        :note     => cc,
         :value    => value)
     end
 

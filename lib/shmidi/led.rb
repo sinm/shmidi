@@ -1,6 +1,7 @@
 # coding: utf-8
 module Shmidi
   class Led < Control
+    CTYPE = :LED
     attr_accessor :color #optional, dont care
 
     def initialize(id, socket, channel, note)
@@ -20,7 +21,7 @@ module Shmidi
       else
         @socket.push(@turn_on_event)
       end
-      Shmidi.TRACE_INTERNAL("LED\t#{@id}\tON")
+      Shmidi.TRACE_INTERNAL("#{CTYPE}\t#{@id}\tON")
     end
 
     def turned_off?
@@ -33,7 +34,7 @@ module Shmidi
       else
         @socket.push(@turn_off_event)
       end
-      Shmidi.TRACE_INTERNAL("LED\t#{@id}\tOFF")
+      Shmidi.TRACE_INTERNAL("#{CTYPE}\t#{@id}\tOFF")
     end
 
   end

@@ -27,14 +27,13 @@ module Shmidi
 
   @@trace_queue = Queue.new
   @@trace_thread = Thread.new do
-    begin
-      loop do
+    loop do
+      begin
         str = @@trace_queue.pop
         $stderr.puts("#{timestamp}\t#{str}")
+      rescue
+        $stderr.puts("Error in trace thread: #{$!}")
       end
-    rescue
-      $stderr.puts($!)
-      $stderr.puts($!.backtrace)
     end
   end
 
@@ -52,9 +51,12 @@ module Shmidi
     return nil unless TRACE_INTERNAL
     @@trace_queue.push(str)
   end
-end
 
-# TODO: ? controls are passive and active!
+  def self.ON_EXCEPTION
+    back = $!.backtrace.join("\n\t\t")
+    @@trace_queue.push("ERROR\t#{$!.class.name}:#{$!}\n\t\t#{back}")
+  end
+end
 
 require 'shmidi/socket'
 require 'shmidi/event'
@@ -63,12 +65,16 @@ require 'shmidi/notes'
 
 require 'shmidi/clock'
   require 'shmidi/on_off_clock'
+
 require 'shmidi/control'
-  require 'shmidi/knob'
-  require 'shmidi/button'
   require 'shmidi/led'
-  require 'shmidi/led_button'
-    require 'shmidi/switch'
-    require 'shmidi/retain_button'
+  require 'shmidi/knob'
+    require 'shmidi/fader'
+    require 'shmidi/encoder'
+  require 'shmidi/button'
+    require 'shmidi/encoder_button'
+    require 'shmidi/led_button'
+      require 'shmidi/switch'
+      require 'shmidi/retain_button'
 
 

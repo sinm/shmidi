@@ -15,8 +15,7 @@ module Shmidi
       end
     rescue Timeout::Error
     rescue
-      $stderr.puts($!)
-      $stderr.puts($!.backtrace)
+      Shmidi.ON_EXCEPTION
     ensure
       notes_off(channel)
     end
@@ -43,7 +42,7 @@ module Shmidi
       end
     rescue Timeout::Error
     rescue
-      puts($!)
+      Shmidi.ON_EXCEPTION
     ensure
       notes_off(channel)
     end

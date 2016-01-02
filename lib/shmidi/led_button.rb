@@ -1,6 +1,7 @@
 # coding: utf-8
 module Shmidi
   class LedButton < Control
+    CTYPE = :LEDBUT
     attr_reader :button, :led
 
     def initialize(id, socket, channel, note, led_note = nil)
