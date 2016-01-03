@@ -10,13 +10,11 @@ module Shmidi
       @move_enc.on_value do |enc|
         enc.direction == :UP ? app_push(3, 1, 1) : app_push(3, 1, 127)
       end
+
       @size_swi =  Switch.new(:size_swi, @dev, @dev_channel, 'D1')
-
-      # state reset
-      @size = :xfine
-      app_push(3, 2, 0)
-      @size_swi.led.turn_off
-
+        @size = :xfine
+        @size_swi.led.turn_off
+        app_push(3, 2, 0)
       @size_swi.on_switch_state do |swi|
         @size, value = if swi.switch_state
           case(@size)
@@ -36,6 +34,7 @@ module Shmidi
         Shmidi.TRACE("SIZE\t#{@size}\t(#{value})")
         app_push(3, 2, value)
       end
+
       @move_but =  Button.new(:move_but, @dev, @dev_channel, 'D0')
       @move_but.on_press do |but|
         @size, value = case(@size)
@@ -57,7 +56,22 @@ module Shmidi
         Shmidi.TRACE("SIZE\t#{@size}\t(#{value})")
         app_push(3, 2, value)
       end
+
+      @start_but = Switch.new(:start_but, @dev, @dev_channel, 'D#0', 'B0')
+      begin
+        @play = false
+        @start_but.led.turn_off
+        app_push(4, 0, 127)
+      end
+      @start_but.on_switch_state do |but|
+        (@play = but.switch_state) ? app_push(4, 1, 127) : app_push(4, 0, 127)
+      end
+
+
+    Shmidi.TRACE("#{self.class.name} ready!")
     end
+
+
 
     def app_push(channel, cc, value)
       @app.push(Event.new_cc(channel, cc, value))
