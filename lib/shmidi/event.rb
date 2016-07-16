@@ -1,6 +1,7 @@
 # coding: utf-8
 module Shmidi
   class Event
+    #TODO: eat symbols and strings as needed for shmidi piping
     attr_reader :source
     attr_reader :data, :timestamp
     attr_reader :channel, :message_int, :note_int, :value
@@ -55,10 +56,6 @@ module Shmidi
       end
     end
 
-    def transform(&block)
-      instance_exec(&block)
-    end
-
     def self.new_on(channel, note, value = 127)
       Event.new(
         :channel  => channel,
@@ -82,7 +79,6 @@ module Shmidi
         :note     => cc,
         :value    => value)
     end
-
 
     def to_s
       "CH:#{@channel}\t#{@message}\t#{@note}\t=#{@value}"

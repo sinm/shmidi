@@ -24,4 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'ffi-coremidi',  '0.3.8'
   s.add_dependency 'unimidi',       '0.4.6'
   s.add_dependency 'argparser',     '~> 2.1'
+  s.add_dependency 'oj',            '~> 2.12.12'
 end

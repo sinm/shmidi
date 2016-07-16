@@ -3,9 +3,8 @@ module Shmidi
   class Encoder < Knob
     CTYPE = :ENC
 
-    def direction
-      @value == 1 ? :UP : :DOWN
+    def increasing?
+      @value == 1
     end
-
   end
 end

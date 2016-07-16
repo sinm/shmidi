@@ -1,23 +1,40 @@
 # coding: utf-8
 module Shmidi
   class Socket
-    attr_reader :name
+    include Base
 
-    def initialize(name, in_id, out_id, queue)
-      @in   = UniMIDI::Input.all.find { |d| d.id == in_id  }
-      @out  = UniMIDI::Output.all.find{ |d| d.id == out_id }
+    @@controllers = {}
+    def self.[](name)
+      @@controllers[name]
+    end
+
+    attr_reader :name, :in, :out
+
+    def initialize(name, in_id, out_id)
       @name = name
-      @queue = queue
-      @on_event = []
-      @sync_threads = Hash.new { |hash, key| hash[key] = Clock.new(key, self) }
-      @listener = Thread.new do
+      @in = in_id
+      @out = out_id
+      init
+    end
+
+    def init
+      @__in_dev   = UniMIDI::Input.all.find { |d| d.name == @in  }
+      @__out_dev  = UniMIDI::Output.all.find { |d| d.name == @out }
+
+      @@controllers[@name] = self
+      @__queue = Queue.new
+      @__on_event = []
+      # @__sync_threads = Hash.new { |hash, key| hash[key] = Clock.new(key, self) }
+      @__listener = Thread.new do
         loop do
+          break unless @__in_dev
           begin
-            @in.gets.each do |event|
+            @__in_dev.gets.each do |event|
               event[:source] = @name
               event = Event.new(event)
-              @queue.push(event)
-              @on_event.each do |rule|
+              Shmidi.TRACE_INTERNAL("> #{@name}\t#{event}")
+              @__queue.push(event)
+              @__on_event.each do |rule|
                 next if (channel  = rule[:channel]) && channel  != event.channel
                 next if (message  = rule[:message]) && message  != event.message
                 next if (note     = rule[:note])    && note     != event.note
@@ -34,7 +51,7 @@ module Shmidi
     end
 
     def on_event(channel = nil, message = nil, note = nil, value = nil, &block)
-      @on_event << {
+      @__on_event << {
         :block => block,
         :channel => channel,
         :message => message,
@@ -44,11 +61,11 @@ module Shmidi
 
     def push(events)
       events = Array(events).reduce([]) do |array, event|
-        Shmidi.TRACE_EXTERNAL("> #{@name}\t#{event}")
+        Shmidi.TRACE_EXTERNAL("< #{@name}\t#{event}")
         array << event.data
         array
       end
-      @out.puts(*events)
+      @__out_dev.puts(*events)
     end
 
     def self.print_device_list

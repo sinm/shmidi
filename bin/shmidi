@@ -2,6 +2,9 @@
 require 'shmidi'
 require 'io/console'
 
+# require 'pp'
+# pp UniMIDI::Input.all[0]
+# __END__
 if Shmidi::PROFILE
   begin
     require 'perftools'
@@ -12,15 +15,45 @@ if Shmidi::PROFILE
   end
 end
 
+@ctl = Shmidi::Controller.new('xonek1-ledtest')
 trap('INT') do
+  @ctl.reset
+  puts(@ctl.inspect)
   exit(0)
 end
 
-if ARGV.include?('--list')
+case ARGV.shift
+when 'list'
   Shmidi::Socket.print_device_list
-  exit(0)
+when 'ledtest'
+  if ARGV.size == 1
+    @ctl = Shmidi.JSON_PARSE(File.read(ARGV.shift))
+  else
+    @sock = 'xone'
+    @ctl.sockets << Shmidi::Socket.new(@sock, ARGV.shift, ARGV.shift)
+    @chan = 15
+    @ctl.controls['led'] = Shmidi::RGYLed.new(
+      Shmidi::Led.new(@sock, @chan, 'C0'),
+      Shmidi::Led.new(@sock, @chan, 'G#0'),
+      Shmidi::Led.new(@sock, @chan, 'E0', true)
+    )
+  end
+  sleep(0.15)
+  loop do
+    @ctl.controls['led'].turn_on('red')
+    sleep(0.15)
+    @ctl.controls['led'].turn_on('green')
+    sleep(0.15)
+    @ctl.controls['led'].turn_on('yellow')
+    sleep(0.15)
+    @ctl.controls['led'].turn_off
+    sleep(0.15)
+  end
+else
+  puts('NOOP')
 end
 
+__END__
 inouts = ARGV[0..3].map{|v|v.to_i}
 
 @processor = if (i = ARGV.index('--processor'))

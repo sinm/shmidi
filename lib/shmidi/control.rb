@@ -1,15 +1,21 @@
 # coding: utf-8
 module Shmidi
   class Control
-    attr_accessor :id # NOTE: may be array kind of [row, column]
-    attr_accessor :name # optional name
-    attr_accessor :socket, :channel, :note
+    include Base
+    attr_accessor :channel, :note
 
-    def initialize(id, socket, channel, note)
-      @id = id
+    def socket
+      Socket[@socket]
+    end
+
+    def initialize(socket, channel, note)
       @socket = socket
       @channel = channel
       @note = note
+    end
+
+    def id
+      "#{@channel}:#{@note}"
     end
   end
 end

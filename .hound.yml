@@ -1,4 +1,0 @@
-# NOTE: it works on pull requests only
-ruby:
-  config_file: .rubocop.yml
-  enabled: true

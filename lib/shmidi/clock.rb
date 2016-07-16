@@ -13,7 +13,7 @@ module Shmidi
         loop do
           begin
             buf = filter
-            @socket.push(buf)
+            Socket[@socket].push(buf)
             buf.each do |event|
               event.destination.push(true)
             end

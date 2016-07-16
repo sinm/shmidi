@@ -1,0 +1,42 @@
+{
+  "m_type":"Shmidi::Controller",
+  "name":"xonek1-ledtest",
+  "internals":[
+    [
+      {
+        "m_type":"Shmidi::Socket",
+        "name":"xone",
+        "in":"ALLEN&HEATH LTD. XONE:K1",
+        "out":"ALLEN&HEATH LTD. XONE:K1"
+      }
+    ],
+    {
+      "led":{
+        "m_type":"Shmidi::RGYLed",
+        "leds":{
+          "red":{
+            "m_type":"Shmidi::Led",
+            "socket":"xone",
+            "channel":15,
+            "note":"C0",
+            "turned_on":false
+          },
+          "green":{
+            "m_type":"Shmidi::Led",
+            "socket":"xone",
+            "channel":15,
+            "note":"G#0",
+            "turned_on":false
+          },
+          "yellow":{
+            "m_type":"Shmidi::Led",
+            "socket":"xone",
+            "channel":15,
+            "note":"E0",
+            "turned_on":false
+          }
+        }
+      }
+    }
+  ]
+}
