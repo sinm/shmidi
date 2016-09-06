@@ -1,5 +1,5 @@
 # coding: utf-8
 
 module Shmidi
-  VERSION = '3.0.RC-1'
+  VERSION = '0.1'
 end
