@@ -29,19 +29,19 @@ module Shmidi
     end
   end
 
-  def self.TRACE(str)
+  def self.TRACE
     return nil unless TRACE
-    @@trace_queue.push(str)
+    @@trace_queue.push(yield)
   end
 
-  def self.TRACE_EXTERNAL(str)
+  def self.TRACE_EXTERNAL
     return nil unless TRACE_EXTERNAL
-    @@trace_queue.push(str)
+    @@trace_queue.push(yield)
   end
 
-  def self.TRACE_INTERNAL(str)
+  def self.TRACE_INTERNAL
     return nil unless TRACE_INTERNAL
-    @@trace_queue.push(str)
+    @@trace_queue.push(yield)
   end
 
   def self.ON_EXCEPTION
@@ -67,8 +67,8 @@ module Shmidi
     Oj.load(str, opts)
   rescue
     if opts[:warn]
-      Shmidi::ON_EXCEPTION
-      TRACE "#{str}".force_encoding(Encoding::UTF_8)
+      Shmidi.ON_EXCEPTION
+      TRACE {"#{str}".force_encoding(Encoding::UTF_8)}
     end
     nil
   end

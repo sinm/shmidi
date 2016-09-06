@@ -17,7 +17,7 @@ module Shmidi
 
     def on_button_press(button)
       (@switch_state = !@switch_state) ? @led.turn_on : @led.turn_off
-      Shmidi.TRACE("#{CTYPE}\t#{@id}\tSTATE\t#{@switch_state ? :ON : :OFF}")
+      Shmidi.TRACE {"#{CTYPE}\t#{@id}\tSTATE\t#{@switch_state ? :ON : :OFF}"}
       @on_switch.each { |b| b.call(self) }
     end
 

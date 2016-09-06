@@ -77,7 +77,7 @@ module Shmidi
           begin
             obj.instance_variable_set("@#{key}", value)
           rescue Exception
-            Shmidi::ON_EXCEPTION
+            Shmidi.ON_EXCEPTION
           end
         end
         obj.version ||= 0

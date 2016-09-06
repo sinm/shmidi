@@ -32,7 +32,7 @@ module Shmidi
             @__in_dev.gets.each do |event|
               event[:source] = @name
               event = Event.new(event)
-              Shmidi.TRACE_INTERNAL("> #{@name}\t#{event}")
+              Shmidi.TRACE_INTERNAL {"#{@name} ->\t#{event}"}
               @__queue.push(event)
               @__on_event.each do |rule|
                 next if (channel  = rule[:channel]) && channel  != event.channel
@@ -61,7 +61,7 @@ module Shmidi
 
     def push(events)
       events = Array(events).reduce([]) do |array, event|
-        Shmidi.TRACE_EXTERNAL("< #{@name}\t#{event}")
+        Shmidi.TRACE_EXTERNAL {"< #{@name}\t#{event}"}
         array << event.data
         array
       end

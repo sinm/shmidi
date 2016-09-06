@@ -15,14 +15,14 @@ module Shmidi
       @__on_value = []
       socket.on_event(channel, :cc, note) do |event|
         reset(event.value)
-        Shmidi.TRACE("#{CTYPE}\t#{id}\t#{@value}")
+        Shmidi.TRACE {"#{CTYPE}\t#{id}\t#{@value} (on_event)"}
         @__on_value.each { |b| b.call(self) }
       end
     end
 
     def reset(new_value=0)
       @prev_value = @value
-      @value = 0
+      @value = new_value
     end
 
     def on_value(&block)
